@@ -19,7 +19,7 @@ import os
 
 import settings_ini
 import utils
-import c_polllist
+poll_list = settings_ini.poll_list
 
 
 def get_filename() -> str:
@@ -31,7 +31,7 @@ def get_headline() -> str:
     now = datetime.datetime.now()
     dt =  "{2:04d}-{1:02d}-{0:02d}".format(now.day, now.month, now.year)
     cols = []
-    for itm in c_polllist.poll_list.items:
+    for itm in poll_list.items:
         # get addr as column caption
         if(isinstance(itm[0], int)):
             # PollCycle...
@@ -81,7 +81,7 @@ def buffer_csv_line(data, force_write=False):
 
         # decimal separator
         tbreplaced = "." if settings_ini.dec_separator == "," else ","
-        for i in range(0, c_polllist.poll_list.num_items):
+        for i in range(0, poll_list.num_items):
             sval = str(data[i]) if data[i] else "0"  # wg. None wg. once_onlies.... alles Pfusch
             if(utils.to_number(data[i]) != None):
                 # format number, anything else left like it is

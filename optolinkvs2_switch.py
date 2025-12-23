@@ -25,13 +25,14 @@ import signal
 
 from logger_util import logger
 import settings_ini
+poll_list = settings_ini.poll_list
+
 import vs12_adapter
 import viconn_util
 import viessdata_util
 import c_tcpserver
 import requests_util
 from c_logging import viconnlog
-from c_polllist import poll_list
 import utils
 import wo1c_energy
 
@@ -355,7 +356,6 @@ def main():
 
     try:
     #if True:
-        poll_list.make_list()
         # buffer for read data for writing viessdata.csv 
         poll_data = [None] * poll_list.num_items
 
@@ -505,14 +505,13 @@ def main():
                                         poll_data = [None] * poll_list.num_items
                                     elif(settings_ini.write_viessdata_csv):
                                         viessdata_util.buffer_csv_line(poll_data)
-                                    # wo1c energy
-                                    if(settings_ini.wo1c_energy > 0) and (poll_cycle % settings_ini.wo1c_energy == 0):
-                                        if(not settings_ini.vs1protocol):
+                                    # plugins like wo1c_energy.read_energy
+                                    for name, plugin in list(settings_ini.plugin_registry.items()):
+                                        if poll_cycle % plugin['interval'] == 0:
                                             olbreath(retcode)
-                                            retcode = wo1c_energy.read_energy(serViDev)
-                                        else:
-                                            logger.warning("wo1c_energy not supported with VS1/KW protocol")
-                                            settings_ini.wo1c_energy = 0
+                                            logger.info(f"run plugin {name}")
+                                            if plugin['func'](**locals()) is None:
+                                                del settings_ini.plugin_registry[name]
                                     # poll cycle control
                                     poll_cycle += 1
                                     if(poll_cycle == 479001600):  # 1*2*3*4*5*6*7*8*9*10*11*12 < 32 bits

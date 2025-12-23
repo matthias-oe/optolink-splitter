@@ -6,7 +6,8 @@ __pycache__/
 *.csv
 *.txt
 # user specific files
-settings_ini.py
+.env
+!.env.example
 entities,json
 test.py
 allupdate.sh

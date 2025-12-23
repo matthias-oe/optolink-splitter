@@ -13,44 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 '''
-
-import os
-import importlib
-
-import settings_ini
 from logger_util import logger
 
-
 class cPollList:
-    def __init__(self):
+    def __init__(self, poll_items):
         """
         Initialisiert die Klasse
         """
-        self.items = []
-        self.num_items = 0
-        self.onceonlies_removed = False
-
-    def make_list(self):
-        if(os.path.exists("poll_list.py")):
-            mylist = importlib.import_module('poll_list')
-            self.items = mylist.poll_items
-        else:
-            self.items = settings_ini.poll_items
+        self.items = poll_items
         self.num_items = len(self.items)
+        self.onceonlies_removed = False
         logger.info(f"poll_list made, {self.num_items} items")
 
-    def remove_once_onlies(self) -> bool:
+    def remove_once_onlies(self):
         if self.onceonlies_removed: 
-            return False
+            return
         filtered = [item for item in self.items if not (isinstance(item[0], int) and item[0] == 0)]
         self.items = filtered
-        self.onceonlies_removed = True
         newlen = len(self.items)
         if(self.num_items != newlen):
             self.num_items = newlen
             logger.info(f"poll_list shrinked to {self.num_items} items")
-            return True
-        return False
+        self.onceonlies_removed = True
 
-# for global use
-poll_list = cPollList()

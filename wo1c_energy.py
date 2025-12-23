@@ -1,13 +1,16 @@
 import serial
 import datetime
+import settings_ini
+from logger_util import logger
 
 import optolinkvs2
 import utils
 import mqtt_util
 
-interval = 0
-
-def read_energy(ser:serial.Serial, day_of_week=None):
+def read_energy(serViDev:serial.Serial, retcode, day_of_week=None, **ignored):
+    if(settings_ini.vs1protocol):
+        logger.warning("wo1c_energy not supported with VS1/KW protocol")
+        return None
     # read energy by RPC
     addr = 0xb800
     wkday = day_of_week if day_of_week else datetime.datetime.now().weekday()
@@ -23,13 +26,13 @@ def read_energy(ser:serial.Serial, day_of_week=None):
     outbuff[8] = wkday  # day of week
     outbuff[9] = optolinkvs2.calc_crc(outbuff)
 
-    ser.reset_input_buffer()
+    serViDev.reset_input_buffer()
     # After message is send, 
-    ser.write(outbuff)
+    serViDev.write(outbuff)
     #print("R tx", utils.bbbstr(outbuff))
 
     # return retcode, addr, data
-    retcode, addr, data = optolinkvs2.receive_telegr(True, True, ser)
+    retcode, addr, data = optolinkvs2.receive_telegr(True, True, serViDev)
 
     if((retcode == 1) and (len(data) > 20)):
         print(f"day {wkday}:", utils.bbbstr(data[12:-1]))
